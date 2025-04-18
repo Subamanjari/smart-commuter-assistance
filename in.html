@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Smart Commuter Assistant</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        h1 { color: #333; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"], input[type="time"] { width: 300px; padding: 8px; }
+        button { margin-top: 15px; padding: 10px 20px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .result { margin-top: 20px; padding: 15px; background: #fff; border-radius: 5px; box-shadow: 0 0 10px #ccc; }
+        .bus { border-left: 5px solid #2196F3; padding-left: 10px; margin-bottom: 10px; }
+        .train { border-left: 5px solid #f44336; padding-left: 10px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Smart Commuter Assistant</h1>
+    <form id="searchForm">
+        <label>Source:</label>
+        <input type="text" name="source" required>
+        <label>Destination:</label>
+        <input type="text" name="destination" required>
+        <label>Preferred Travel Time:</label>
+        <input type="time" name="travel_time" required>
+        <button type="submit">Search</button>
+    </form>
+
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('searchForm').onsubmit = async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const response = await fetch('/search', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+
+            data.routes.forEach(route => {
+                const div = document.createElement('div');
+                div.className = `result ${route.transport.toLowerCase()}`;
+                if (route.transport === "Bus") {
+                    div.innerHTML = `
+                        <h3>🚌 ${route.bus_name}</h3>
+                        <p><strong>Route:</strong> ${route.route}</p>
+                        <p><strong>Departure:</strong> ${route.departure_time}</p>
+                        <p><strong>Arrival:</strong> ${route.arrival_time}</p>
+                        <p><strong>Cost:</strong> ${route.cost}</p>
+                    `;
+                } else if (route.transport === "Train") {
+                    div.innerHTML = `
+                        <h3>🚆 ${route.train_name} (${route.train_type})</h3>
+                        <p><strong>Route:</strong> ${route.route}</p>
+                        <p><strong>From:</strong> ${route.departure_station}</p>
+                        <p><strong>To:</strong> ${route.arrival_station}</p>
+                        <p><strong>Departure:</strong> ${route.departure_time}</p>
+                        <p><strong>Arrival:</strong> ${route.arrival_time}</p>
+                        <p><strong>Cost:</strong> ${route.cost}</p>
+                    `;
+                }
+                results.appendChild(div);
+            });
+        };
+    </script>
+</body>
+</html>
